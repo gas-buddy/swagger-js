@@ -115,12 +115,12 @@ Need to pass an API key? Ok, lets do it for this sample `swagger.yml`:
 
 securityDefinitions:
 
-  api_sheme_name:           # swagger scheme name
+  api_scheme_name:           # swagger scheme name
     type: apiKey            # swagger type (one of "basic", "apiKey" or "oauth2")
     name: queryParamName    # The name of the header or query parameter to be used
     in: query               # location of the API key
 
-  api_sheme_name_2:
+  api_scheme_name_2:
     type: apiKey
     name: X-KEY-PARAM
     in: header
@@ -131,7 +131,7 @@ securityDefinitions:
 Configure auth for that definition in your client instance as a *query string*:
 
 ```js
-client.clientAuthorizations.add("api_sheme_name",
+client.clientAuthorizations.add("api_scheme_name",
   new Swagger.ApiKeyAuthorization(
     "queryParamName",
     "<YOUR-SECRET-KEY>",
@@ -143,7 +143,7 @@ client.clientAuthorizations.add("api_sheme_name",
 ...or with a *header*:
 
 ```js
-client.clientAuthorizations.add("api_sheme_name_2",
+client.clientAuthorizations.add("api_scheme_name_2",
   new Swagger.ApiKeyAuthorization(
     "X-KEY-PARAM",
     "<YOUR-SECRET-KEY>",
@@ -187,7 +187,7 @@ client.pet.addPet({pet: {
 
 ### Calling an API with swagger + the browser!
 
-Download [`browser/swagger-client.min.js`](https://raw.githubusercontent.com/swagger-api/swagger-js/master/browser/swagger-client.min.js) and place it into your webapp:
+Download [`browser/swagger-client.min.js`](https://raw.githubusercontent.com/swagger-api/swagger-js/2.x/browser/swagger-client.min.js) and place it into your webapp:
 
 ```html
 <script src='browser/swagger-client.js' type='text/javascript'></script>
@@ -334,6 +334,7 @@ var client = new SwaggerClient({
 
 You can also pass in your own version superagent (if, for example, you have other superagent plugins etc that you want to use)
 
+```js
 var agent = require('some-other-special-superagent');
 
 var client = new SwaggerClient({

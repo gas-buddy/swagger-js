@@ -199,7 +199,7 @@ describe('help options', function () {
         var msg = client.test.sample.asCurl({body: {
           description: '<b>Test</b>'
         }});
-        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json\' --header \'Accept: application/json\' -d \'{"description":"<b>Test</b>"}\' \'http://localhost:8080/foo\'');
+        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json\' --header \'Accept: application/json\' --data-raw \'{"description":"<b>Test</b>"}\' \'http://localhost:8080/foo\'');
         done();
       }
     });
@@ -233,7 +233,7 @@ describe('help options', function () {
         var msg = client.test.sample.asCurl({body: {
           description: '<h1>hello world<script>alert(\'test\')</script></h1>'
         }});
-        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json\' --header \'Accept: application/json\' -d \'{"description":"<h1>hello world<script>alert(%27test%27)</script></h1>"}\' \'http://localhost:8080/foo\'');
+        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json\' --header \'Accept: application/json\' --data-raw \'{"description":"<h1>hello world<script>alert(\\u0027test\\u0027)</script></h1>"}\' \'http://localhost:8080/foo\'');
         done();
       }
     });
@@ -275,7 +275,7 @@ describe('help options', function () {
       spec: spec,
       success: function () {
         var msg = client.test.sample.asCurl({body: body});
-        expect(msg).toBe('curl -X POST --header \'Content-Type: application\/json\' --header \'Accept: application\/json\' -d \'%40prefix nif:<http:\/\/persistence.uni-leipzig.org\/nlp2rdf\/ontologies\/nif-core#> . \\ \n %40prefix itsrdf: <http:\/\/www.w3.org\/2005\/11\/its\/rdf#> . \\ \n %40prefix xsd: <http:\/\/www.w3.org\/2001\/XMLSchema#> . \\ \n <http:\/\/example.org\/document\/1#char=0,21> \\ \n a nif:String , nif:Context, nif:RFC5147String ; \\ \n nif:isString "Welcome to Berlin"^^xsd:string; \\ \n nif:beginIndex "0"^^xsd:nonNegativeInteger; \\ \n nif:endIndex "21"^^xsd:nonNegativeInteger; \\ \n nif:sourceUrl <http:\/\/differentday.blogspot.com\/2007_01_01_archive.html>.\' \'http:\/\/localhost:8080\/foo\'');
+        expect(msg).toBe('curl -X POST --header \'Content-Type: application\/json\' --header \'Accept: application\/json\' --data-raw \'@prefix nif:<http:\/\/persistence.uni-leipzig.org\/nlp2rdf\/ontologies\/nif-core#> .\n@prefix itsrdf: <http:\/\/www.w3.org\/2005\/11\/its\/rdf#> .\n@prefix xsd: <http:\/\/www.w3.org\/2001\/XMLSchema#> .\n<http:\/\/example.org\/document\/1#char=0,21>\na nif:String , nif:Context, nif:RFC5147String ;\nnif:isString "Welcome to Berlin"^^xsd:string;\nnif:beginIndex "0"^^xsd:nonNegativeInteger;\nnif:endIndex "21"^^xsd:nonNegativeInteger;\nnif:sourceUrl <http:\/\/differentday.blogspot.com\/2007_01_01_archive.html>.\' \'http:\/\/localhost:8080\/foo\'');
         done();
       }
     });
@@ -330,7 +330,7 @@ describe('help options', function () {
       spec: spec,
       success: function () {
         var msg = client.test.sample.asCurl({name: 'fred'});
-        expect(msg).toBe('curl -X DELETE --header \'Content-Type: application/x-www-form-urlencoded\' --header \'Accept: application/json\' -d \'name=fred\' \'http://localhost:8080/foo\'');
+        expect(msg).toBe('curl -X DELETE --header \'Content-Type: application/x-www-form-urlencoded\' --header \'Accept: application/json\' --data-raw \'name=fred\' \'http://localhost:8080/foo\'');
         done();
       }
     });
@@ -389,7 +389,7 @@ describe('help options', function () {
       spec: spec,
       success: function () {
         var msg = client.test.sample.asCurl({names: ['tony', 'tam']});
-        expect(msg).toBe('curl -X POST --header \'Content-Type: application/x-www-form-urlencoded\' --header \'Accept: application/json\' -d \'names[]=tony&names[]=tam\' \'http://localhost:8080/foo\'');
+        expect(msg).toBe('curl -X POST --header \'Content-Type: application/x-www-form-urlencoded\' --header \'Accept: application/json\' --data-raw \'names[]=tony&names[]=tam\' \'http://localhost:8080/foo\'');
         done();
       }
     });
@@ -423,7 +423,7 @@ describe('help options', function () {
       spec: spec,
       success: function () {
         var msg = client.test.sample.asCurl({complexBody: '{"name":"tony"}'},{requestContentType: 'application/json; version=1'});
-        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json; version=1\' --header \'Accept: application/json; version=1\' -d \'{"name":"tony"}\' \'http://localhost:8080/foo\'');
+        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json; version=1\' --header \'Accept: application/json; version=1\' --data-raw \'{"name":"tony"}\' \'http://localhost:8080/foo\'');
         done();
       }
     });
@@ -459,6 +459,77 @@ describe('help options', function () {
       }
     });
   });
+
+  it('shows curl for multipart/form-data with password masking', function (done) {
+    var spec = {
+      basePath: '/v2',
+      paths: {
+        '/test': {
+          post: {
+            tags: [ 'test' ],
+            operationId: 'sample',
+            consumes: ['multipart/form-data'],
+            parameters: [
+              {
+                in: 'query',
+                name: 'password',
+                type: 'string',
+                format: 'password',
+                required: true
+              }
+            ]
+          }
+        }
+      }
+    };
+
+    var client = new SwaggerClient({
+      url: 'http://petstore.swagger.io/v2/swagger.json',
+      spec: spec,
+      success: function () {
+        var msg = client.test.sample.asCurl({password: 'hidden!'});
+        expect(msg).toBe('curl -X POST --header \'Content-Type: multipart/form-data\' --header \'Accept: application/json\' {} \'http://petstore.swagger.io/v2/test?password=******\'');
+
+        done();
+      }
+    });
+  });
+
+  it('masks www-form-urlencoded passwords', function (done) {
+    var spec = {
+      paths: {
+        '/foo': {
+          delete: {
+            tags: [ 'test' ],
+            operationId: 'sample',
+            consumes: [ 'application/x-www-form-urlencoded' ],
+            parameters: [
+              {
+                in: 'formData',
+                name: 'password',
+                type: 'string',
+                format: 'password'
+              }
+            ]
+          }
+        }
+      }
+    };
+
+    var client = new SwaggerClient({
+      url: 'http://localhost:8080/petstore.yaml',
+      spec: spec,
+      success: function () {
+        var msg = client.test.sample.asCurl({password: 'hidden!'});
+        expect(msg).toBe('curl -X DELETE --header \'Content-Type: application/x-www-form-urlencoded\' --header \'Accept: application/json\' --data-raw \'password=******\' \'http://localhost:8080/foo\'');
+
+        var obj = client.test.sample({password: 'hidden!'}, {mock: true});
+        expect(obj.body).toBe('password=hidden!');
+        done();
+      }
+    });
+  });
+
 
   it('shows curl for multipart/form-data', function (done) {
     var spec = {
@@ -503,6 +574,40 @@ describe('help options', function () {
       success: function () {
         var msg = client.test.sample.asCurl({id: 3, name: 'tony', status: 'dead'});
         expect(msg).toBe('curl -X POST --header \'Content-Type: multipart/form-data\' --header \'Accept: application/json\' -F name=tony -F status=dead  \'http://petstore.swagger.io/v2/pet/3\'');
+
+        done();
+      }
+    });
+  });
+
+  it('masks passwords in curl example', function (done) {
+    var spec = {
+      basePath: '/v2',
+      paths: {
+        '/test': {
+          post: {
+            tags: [ 'test' ],
+            operationId: 'sample',
+            parameters: [
+              {
+                in: 'query',
+                name: 'password',
+                type: 'string',
+                format: 'password',
+                required: true
+              }
+            ]
+          }
+        }
+      }
+    };
+
+    var client = new SwaggerClient({
+      url: 'http://petstore.swagger.io/v2/swagger.json',
+      spec: spec,
+      success: function () {
+        var msg = client.test.sample.asCurl({password: 'hidden!'});
+        expect(msg).toBe('curl -X POST --header \'Content-Type: application/json\' --header \'Accept: application/json\' \'http://petstore.swagger.io/v2/test?password=******\'');
 
         done();
       }
